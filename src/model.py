@@ -11,11 +11,9 @@ class Model:
     db: Persistance
     mail: Mail
 
-    def __init__(self):
-        config: configparser.ConfigParser = configparser.ConfigParser()
-        config.read("config.ini")
+    def __init__(self, config = configparser.ConfigParser()):
+        self.db: Persistance = Persistance(config)
         self.mail: Mail = Mail(config)
-        self.db: Persistance = Persistance()
         self.sms_client = SMSService(config)
 
     def login(self, login_dto: LoginDto) -> bool:
@@ -29,10 +27,10 @@ class Model:
         #     return False
         return False
 
-    def register(self, user: model_dto.RegisterDto) -> bool:
+    def register(self, user: model_dto.userDto) -> bool:
         try:
             # save user
-            self.db.resister_user(user)
+            self.db.save_user(user)
             # send mail
             self.send_register_mail(user)
             # send sms
@@ -42,7 +40,7 @@ class Model:
             print(ex)
             return False
 
-    def send_register_mail(self, user: model_dto.RegisterDto):
+    def send_register_mail(self, user: model_dto.userDto):
         body: str = "secret code = 666"
         subject: str = "registration mail"
         email: str = user.email
