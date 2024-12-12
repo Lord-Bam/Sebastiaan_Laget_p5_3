@@ -5,6 +5,8 @@ from model_dto import userDto
 import configparser
 from mail import Mail
 from sms import SMSService
+import random
+from model_dto import RegistrationCodeDto
 
 
 class Model:
@@ -14,7 +16,7 @@ class Model:
     def __init__(self, config = configparser.ConfigParser()):
         self.db: Persistance = Persistance(config)
         self.mail: Mail = Mail(config)
-        self.sms_client = SMSService(config)
+        self.sms_client: SMSService = SMSService(config)
 
     def login(self, login_dto: LoginDto) -> bool:
         # get user.
@@ -30,18 +32,31 @@ class Model:
     def register(self, user: model_dto.userDto) -> bool:
         try:
             # save user
+            if len(self.get_users()) == 0:
+                user.role="admin"
+            else:
+                user.role="user"
             self.db.save_user(user)
+            
             # send mail
-            self.send_register_mail(user)
+            code = random.randint(1000, 9999)
+            self.db.save_registation_code(RegistrationCodeDto(username=user.username, code=code, type="mail"))
+            self.send_register_mail(user, code)
+            
+            
             # send sms
-            self.send_register_sms(user.mobile_nr, "welcome to registration")
+            code = random.randint(1000, 9999)
+            self.db.save_registation_code(RegistrationCodeDto(username=user.username, code=code, type="sms"))
+            self.send_register_sms(user.mobile_nr, f"this is your personal registration code: {code}")
             return True
+        
+        
         except Exception as ex:
             print(ex)
             return False
 
-    def send_register_mail(self, user: model_dto.userDto):
-        body: str = "secret code = 666"
+    def send_register_mail(self, user: model_dto.userDto, code):
+        body: str = f"secret code = {code}"
         subject: str = "registration mail"
         email: str = user.email
         result = self.mail.send_email(subject, body, email)
@@ -53,6 +68,9 @@ class Model:
 
     def get_user(self, username: str):
         return self.db.get_user(username)
+    
+    def get_users(self):
+        return self.db.get_users()
 
     def verify_mail(self, register_code: int, username: str):
         # get user verification code from database

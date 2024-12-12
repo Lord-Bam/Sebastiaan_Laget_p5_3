@@ -99,10 +99,3 @@ class Mail:
             mail.logout()
         except Exception as e:
             print(f"An error occurred: {e}")
-
-
-config: configparser.ConfigParser = configparser.ConfigParser()
-config.read("config.ini")
-m: Mail = Mail(config)
-m.get_last_mail()
-m.delete_all_mail()

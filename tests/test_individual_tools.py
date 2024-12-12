@@ -1,9 +1,5 @@
-import pytest
-import configparser
 from sms import SMSService
 from mail import Mail
-from persistance import Persistance
-from model_dto import userDto
 
 def test_sms(sms_client: SMSService):
     sms_client.send_sms("+32476880256", "dit is een test")

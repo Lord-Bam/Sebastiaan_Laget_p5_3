@@ -8,7 +8,6 @@ class SMSService:
         self.account_sid = config["SMS"]["account_sid"]
         self.auth_token = config["SMS"]["auth_token"]
         self.twilio_number = config["SMS"]["twilio_number"]
-        # self.recipient_number = config["SMS"]["recipient_number"]
         self.client = Client(self.account_sid, self.auth_token)
 
     def send_sms(self, recipient_number: str, body: str):

@@ -6,6 +6,10 @@ from persistance import Persistance
 from model_dto import userDto
 from model import Model
 
+
+
+
+
 @pytest.fixture()
 def config():
     config: configparser.ConfigParser = configparser.ConfigParser()
@@ -23,7 +27,6 @@ def mail_client(config: configparser.ConfigParser):
     m: Mail = Mail(config)
     return m
 
-
 @pytest.fixture()
 def db_client(config: configparser.ConfigParser):
     p: Persistance = Persistance(config)
@@ -31,15 +34,6 @@ def db_client(config: configparser.ConfigParser):
 
 @pytest.fixture()
 def populate_database(db_client: Persistance):
-    user = db_client.save_user(  # type: ignore
-        userDto(
-            username="user",
-            password="password",
-            email="20240182b@gmail.com",
-            mobile_nr="456",
-            role="user",
-        )
-    )
     admin = db_client.save_user(  # type: ignore
         userDto(
             username="admin",
@@ -47,6 +41,15 @@ def populate_database(db_client: Persistance):
             email="20240182b@gmail.com",
             mobile_nr="123",
             role="admin",
+        )
+    )
+    user = db_client.save_user(  # type: ignore
+        userDto(
+            username="user",
+            password="password",
+            email="20240182b@gmail.com",
+            mobile_nr="456",
+            role="user",
         )
     )
     return user, admin

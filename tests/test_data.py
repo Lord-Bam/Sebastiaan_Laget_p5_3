@@ -1,6 +1,12 @@
-users = [
-    ("admin","admin_password","20240182b@gmail.com","123","admin"),
-    ("user","user_password","20240182b@gmail.com","456","user")
+from model_dto import userDto
+
+
+
+users_list = [
+    [
+        userDto(username="admin", password="admin_password", email="20240182b@gmail.com", mobile_nr="+32476880256", role="admin"),
+        userDto(username="user", password="user_password", email="20240182b@gmail.com", mobile_nr="+32476880256", role="user"),
+    ]
 ]
 
 login_data =[
@@ -12,3 +18,7 @@ login_data =[
     ("", "", False)
     ]
 
+users = [
+    userDto(username="admin",password="admin_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="admin"),
+    userDto(username="user",password="user_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="user")
+]

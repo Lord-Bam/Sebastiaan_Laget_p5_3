@@ -5,8 +5,9 @@ from model_dto import LoginDto
 from mail import Mail
 import configparser
 from pydantic import ValidationError
-from test_data import login_data, users
+from test_data import login_data, users, users_list
 from model_dto import userDto
+from model_dto import RegistrationCodeDto
 
 
 class TestModel:
@@ -44,33 +45,43 @@ class TestModel:
         result = model.login(login)
         assert result == expected
 
-    @pytest.mark.parametrize(
-        "username, password, email, mobile_nr, role", users)
+
+    @pytest.mark.parametrize("users_list", users_list)
+    def test_user_registration_roles(self,get_model: Model, users_list):
+        model = get_model
+        for user in users_list:
+            result = model.register(user)
+            assert result == True
+
+        result: list[userDto]= model.get_users()
+        for user in result:
+            if user.username == "admin":
+                assert user.role == "admin"
+            else:
+                assert user.role == "user"
+
+    @pytest.mark.parametrize("user", users)
     def test_register_positive(
         self,
-        mail_client,
+        mail_client: Mail,
         get_model: Model,
-        username: str,
-        password: str,
-        email: str,
-        mobile_nr: str,
-        role: str,
+        user
     ):
-        user = userDto(
-            username=username, password=password, email=email, mobile_nr=mobile_nr, role=role
-        )
         model = get_model
         result = model.register(user)
         assert result == True
-        result = model.get_user(username)
-        assert result.username == username
-        assert result.password == password
-        assert result.email == email
-        assert result.mobile_nr == mobile_nr
-        assert result.role == role
+        result = model.get_user(user.username)
+        assert result.username == user.username
+        assert result.password == user.password
+        assert result.email == user.email
+        assert result.mobile_nr == user.mobile_nr
+
+        #verify mail:
+        code: RegistrationCodeDto = model.db.get_registation_code(user.username, "mail")
         message = mail_client.get_last_mail()
-        assert message.body == "secret code = 666"
+        assert message.body == f"secret code = {code.code}"
         assert message.subject == "registration mail"
+
 
     # @pytest.mark.parametrize(
     #     "username, password, email, mobile_nr, field, exception",
