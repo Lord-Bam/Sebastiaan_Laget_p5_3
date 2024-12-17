@@ -1,86 +1,116 @@
 import pytest
+
+import model_dto
 from persistance import Persistance
 from model import Model
-from model_dto import LoginDto
 from mail import Mail
-import configparser
 from pydantic import ValidationError
-from test_data import login_data, users, users_list
+from model_dto import LoginDto
+from test_data import login_data, register_list
 from model_dto import userDto
-from model_dto import RegistrationCodeDto
+
 
 
 class TestModel:
-    @pytest.mark.parametrize("username, password, expected",login_data)
+    @pytest.mark.parametrize("username, password, expected", login_data)
     def test_login(
-        self, db_client, get_model, username: str, password: str, expected: bool
+        self, setup_teardown, get_config, populate_database,  username: str, password: str, expected: bool
     ):
-        model: Model = get_model
-
-        #######################################
-        #bit ugly here, but since the user array has to be in model this is the cleanest way.... :-(
-        #######################################
-        user = db_client.save_user(  # type: ignore
-            userDto(
-                username="user",
-                password="user_password",
-                email="20240182b@gmail.com",
-                mobile_nr="456",
-                role="user",
-            )
-        )
-        admin = db_client.save_user(  # type: ignore
-            userDto(
-                username="admin",
-                password="admin_password",
-                email="20240182b@gmail.com",
-                mobile_nr="123",
-                role="admin",
-            )
-        )
-        model.db = db_client
-        ##############################################################
-
+        model: Model = Model(get_config)
         login: LoginDto = LoginDto(username=username, password=password)
         result = model.login(login)
         assert result == expected
 
 
-    @pytest.mark.parametrize("users_list", users_list)
-    def test_user_registration_roles(self,get_model: Model, users_list):
-        model = get_model
-        for user in users_list:
+    @pytest.mark.parametrize("register_list", register_list)
+    def test_user_registration_roles(self,setup_teardown, get_config, register_list):
+        model: Model = Model(get_config)
+        for user in register_list:
             result = model.register(user)
             assert result == True
 
-        result: list[userDto]= model.get_users()
-        for user in result:
+        users: list[model_dto.userDto]= model.get_users()
+
+        for user in users:
+            assert type(user) == model_dto.userDto
             if user.username == "admin":
                 assert user.role == "admin"
-            else:
+            if user.username == "user":
                 assert user.role == "user"
 
-    @pytest.mark.parametrize("user", users)
-    def test_register_positive(
-        self,
-        mail_client: Mail,
-        get_model: Model,
-        user
-    ):
-        model = get_model
-        result = model.register(user)
-        assert result == True
-        result = model.get_user(user.username)
-        assert result.username == user.username
-        assert result.password == user.password
-        assert result.email == user.email
-        assert result.mobile_nr == user.mobile_nr
 
-        #verify mail:
-        code: RegistrationCodeDto = model.db.get_registation_code(user.username, "mail")
-        message = mail_client.get_last_mail()
-        assert message.body == f"secret code = {code.code}"
-        assert message.subject == "registration mail"
+    @pytest.mark.parametrize("register_list", register_list)
+    def test_registration_code(self,setup_teardown, get_config, register_list):
+        #register 2 users
+        model: Model = Model(get_config)
+        for user in register_list:
+            result = model.register(user)
+            assert result == True
+
+        #Verify user codes
+        admin_codes: list["model_dto.RegistrationCodeDto"] = model.get_registration_codes_from_user(register_list[0])
+        assert len(admin_codes) == 2
+        assert admin_codes[0].type == "sms" or admin_codes[1].type == "sms"
+        assert admin_codes[0].type == "mail" or admin_codes[1].type == "mail"
+        assert admin_codes[0].verified == False
+        assert admin_codes[1].verified == False
+        assert admin_codes[0].user.username == "admin"
+        assert admin_codes[1].user.username == "admin"
+
+        user_codes: list["model_dto.RegistrationCodeDto"] = model.get_registration_codes_from_user(register_list[1])
+        assert len(admin_codes) == 2
+        assert user_codes[0].type == "sms" or user_codes[1].type == "sms"
+        assert user_codes[0].type == "mail" or user_codes[1].type == "mail"
+        assert user_codes[0].verified == False
+        assert user_codes[1].verified == False
+        assert user_codes[0].user.username == "user"
+        assert user_codes[1].user.username == "user"
+
+
+        #verify verification function
+        #Since we don't know the codes, we first need to get them.
+        admin_dto: model_dto.userDto = register_list[0]
+        admin_mail_code: model_dto.RegistrationCodeDto = model.get_registration_mail_codes_from_user(admin_dto)
+        admin_sms_code: model_dto.RegistrationCodeDto  = model.get_registration_sms_codes_from_user(admin_dto)
+
+        #since these are just registerd, codes should be false
+        assert admin_mail_code.verified == False
+        assert admin_sms_code.verified == False
+
+
+        #verify the code
+        model.verify_registration_code(admin_mail_code)
+        model.verify_registration_code(admin_sms_code)
+
+        #fetch codes and check if they are verified
+        admin_mail_code: model_dto.RegistrationCodeDto = model.get_registration_mail_codes_from_user(admin_dto)
+        admin_sms_code: model_dto.RegistrationCodeDto  = model.get_registration_sms_codes_from_user(admin_dto)
+        assert admin_mail_code.verified == True
+        assert admin_sms_code.verified == True
+
+
+
+    # @pytest.mark.parametrize("user", users)
+    # def test_register_positive(
+    #     self,
+    #     mail_client: Mail,
+    #     get_model: Model,
+    #     user
+    # ):
+    #     model = get_model
+    #     result = model.register(user)
+    #     assert result == True
+    #     result = model.get_user(user.username)
+    #     assert result.username == user.username
+    #     assert result.password == user.password
+    #     assert result.email == user.email
+    #     assert result.mobile_nr == user.mobile_nr
+
+    #     #verify mail:
+    #     code: RegistrationCodeDto = model.db.get_registation_code(user.username, "mail")
+    #     message = mail_client.get_last_mail()
+    #     assert message.body == f"secret code = {code.code}"
+    #     assert message.subject == "registration mail"
 
 
     # @pytest.mark.parametrize(

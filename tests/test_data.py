@@ -1,11 +1,11 @@
 from model_dto import userDto
+from model_dto import RoleEnum
 
 
-
-users_list = [
+register_list = [
     [
-        userDto(username="admin", password="admin_password", email="20240182b@gmail.com", mobile_nr="+32476880256", role="admin"),
-        userDto(username="user", password="user_password", email="20240182b@gmail.com", mobile_nr="+32476880256", role="user"),
+        userDto(username="admin", password="admin_password", email="20240182b@gmail.com", mobile_nr="+32476880256"),
+        userDto(username="user", password="user_password", email="20240182b@gmail.com", mobile_nr="+32476880256"), 
     ]
 ]
 
@@ -18,7 +18,7 @@ login_data =[
     ("", "", False)
     ]
 
-users = [
-    userDto(username="admin",password="admin_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="admin"),
-    userDto(username="user",password="user_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="user")
-]
+# users = [
+#     userDto(username="admin",password="admin_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="admin"),
+#     userDto(username="user",password="user_password",email="20240182b@gmail.com",mobile_nr="+32476880256",role="user")
+# ]
