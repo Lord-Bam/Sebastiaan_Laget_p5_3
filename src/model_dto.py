@@ -14,8 +14,7 @@ class RoleEnum(str, Enum):
     admin = "admin"
     user = "user"
 
-class userDto(BaseModel):
-
+class UserDto(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     username: constr(min_length=1)
@@ -41,4 +40,4 @@ class RegistrationCodeDto(BaseModel):
     code: constr(min_length=4, max_length=4)
     type: CodeTypeEnum
     verified: bool = Field(default=False)
-    user: userDto
+    user: UserDto

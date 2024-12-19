@@ -1,5 +1,5 @@
-from sms import SMSService
-from mail import Mail
+from tools import SMSService
+from tools import Mail
 
 def test_sms(sms_client: SMSService):
     sms_client.send_sms("+32476880256", "dit is een test")

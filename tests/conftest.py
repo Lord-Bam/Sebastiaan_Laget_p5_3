@@ -1,15 +1,11 @@
 import pytest
 import configparser
-from sms import SMSService
-from mail import Mail
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import ForeignKey, create_engine, Column, Integer, String, Table
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from persistance_model import User
 from persistance_model import Role
 from database import Database
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
+from model import Model
+from model_dto import UserDto
 
 
 #todo: add roles
@@ -86,52 +82,14 @@ def setup_x():
     yield
     print("setup y")
 
+@pytest.fixture()
+def create_users(get_config):
+    users = [
+            UserDto(username="admin", password="admin_password", email="20240182b@gmail.com", mobile_nr="+32476880256"),
+            UserDto(username="user", password="user_password", email="20240182b@gmail.com", mobile_nr="+32476880256"),
+        ]
+    model: Model = Model(get_config)
+    for user in users:
+        model.register(user)
 
-# @pytest.fixture()
-# def config():
-#     config: configparser.ConfigParser = configparser.ConfigParser()
-#     config.read("config.ini")
-#     return config
-
-
-# @pytest.fixture()
-# def sms_client(config: configparser.ConfigParser):
-#     sms_client = SMSService(config)
-#     return sms_client
-
-# @pytest.fixture()
-# def mail_client(config: configparser.ConfigParser):
-#     m: Mail = Mail(config)
-#     return m
-
-# @pytest.fixture()
-# def db_client(config: configparser.ConfigParser):
-#     p: Persistance = Persistance(config)
-#     return p
-
-# @pytest.fixture()
-# def populate_database(db_client: Persistance):
-#     admin = db_client.save_user(  # type: ignore
-#         userDto(
-#             username="admin",
-#             password="password",
-#             email="20240182b@gmail.com",
-#             mobile_nr="123",
-#             role="admin",
-#         )
-#     )
-#     user = db_client.save_user(  # type: ignore
-#         userDto(
-#             username="user",
-#             password="password",
-#             email="20240182b@gmail.com",
-#             mobile_nr="456",
-#             role="user",
-#         )
-#     )
-#     return user, admin
-
-# @pytest.fixture()
-# def get_model(config):
-#     model = Model(config)
-#     return model
+    return users

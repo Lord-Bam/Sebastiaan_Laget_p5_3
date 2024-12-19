@@ -1,10 +1,10 @@
 import model_dto
 from persistance import Persistance
 from model_dto import LoginDto
-from model_dto import userDto
+from model_dto import UserDto
 import configparser
-from mail import Mail
-from sms import SMSService
+from tools import Mail
+from tools import SMSService
 import random
 from model_dto import RegistrationCodeDto
 from model_dto import RoleEnum
@@ -21,15 +21,28 @@ class Model:
         self.mail: Mail = Mail(config)
         self.sms_client: SMSService = SMSService(config)
 
-    def login(self, login_dto: LoginDto) -> bool:
+    def login(self, login_dto: LoginDto) -> str:
         #todo
         #verify if registration codes are verified.
+        user_dto = self.get_user(login_dto.username)
 
-        # get user.
-        user: userDto = self.db.get_user(username=login_dto.username)
-        if user:
-            return check_password_hash(user.password, login_dto.password)
-        return False
+        if not user_dto:
+            return "user_not_found"
+
+        sms_code: model_dto.RegistrationCodeDto = self.get_registration_sms_code_from_user(user_dto)
+        if sms_code:
+            if not sms_code.verified:
+                return "verify_sms"
+
+        mail_code: model_dto.RegistrationCodeDto = self.get_registration_mail_code_from_user(user_dto)
+        if mail_code:
+            if not mail_code.verified:
+                return "verify_mail"
+
+        if check_password_hash(user_dto.password, login_dto.password):
+            return "True"
+
+        return "Username of password incorrect."
 
     def verify_registration_code(self, code: model_dto.RegistrationCodeDto):
         registration_codes: list[model_dto.RegistrationCodeDto] = self.db.get_registation_code(code.user.username)
@@ -37,16 +50,16 @@ class Model:
             if code_under_test.type == code.type:
                 if code_under_test.code == code.code:
                     code_under_test.verified = True
-                    self.db.add_or_update_registation_code(code_under_test)
-                return True
+                    self.db.add_update_registation_code(code_under_test)
+                    return True
         return False
 
-    def get_registration_codes_from_user(self, user: model_dto.userDto):
+    def get_registration_codes_from_user(self, user: model_dto.UserDto):
         registration_codes: list["model_dto.RegistrationCodeDto"] = self.db.get_registation_code(user.username)
         return registration_codes
 
 
-    def get_registration_mail_codes_from_user(self, user: model_dto.userDto):
+    def get_registration_mail_code_from_user(self, user: model_dto.UserDto):
         registration_codes: list["model_dto.RegistrationCodeDto"] = self.db.get_registation_code(user.username)
         if registration_codes:
             for code in registration_codes:
@@ -54,7 +67,7 @@ class Model:
                     return code
         return None
 
-    def get_registration_sms_codes_from_user(self, user: model_dto.userDto):
+    def get_registration_sms_code_from_user(self, user: model_dto.UserDto):
         registration_codes: list["model_dto.RegistrationCodeDto"] = self.db.get_registation_code(user.username)
         if registration_codes:
             for code in registration_codes:
@@ -64,7 +77,7 @@ class Model:
 
 
 
-    def register(self, user: model_dto.userDto) -> bool:
+    def register(self, user: model_dto.UserDto) -> bool:
         try:
             # save user
             user.password = generate_password_hash(user.password)
@@ -72,24 +85,24 @@ class Model:
                 user.role=RoleEnum("admin")
             else:
                 user.role=RoleEnum("user")
-            self.db.save_user(user)
+            self.db.add_update_user(user)
             
             # send mail
             code = str(random.randint(1000, 9999))
-            self.db.add_or_update_registation_code(RegistrationCodeDto(code=code, type="mail", user=user, verified=False))
+            self.db.add_update_registation_code(RegistrationCodeDto(code=code, type="mail", user=user, verified=False))
             #self.send_register_mail(user, code)
             
             
             # send sms
             code = str(random.randint(1000, 9999))
-            self.db.add_or_update_registation_code(RegistrationCodeDto(code=code, type="sms", user=user, verified=False))
+            self.db.add_update_registation_code(RegistrationCodeDto(code=code, type="sms", user=user, verified=False))
             #self.send_register_sms(user.mobile_nr, f"this is your personal registration code: {code}")
             return True
         except Exception as ex:
             print(ex)
             return False
 
-    def send_register_mail(self, user: model_dto.userDto, code):
+    def send_register_mail(self, user: model_dto.UserDto, code):
         body: str = f"secret code = {code}"
         subject: str = "registration mail"
         email: str = user.email
@@ -103,7 +116,7 @@ class Model:
     def get_user(self, username: str):
         return self.db.get_user(username)
     
-    def get_users(self) -> list[model_dto.userDto]:
+    def get_users(self) -> list[model_dto.UserDto]:
         return self.db.get_users()
 
 #     def verify_mail(self, register_code: int, username: str):
