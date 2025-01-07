@@ -36,7 +36,6 @@ class CodeTypeEnum(str, Enum):
 
 class RegistrationCodeDto(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
     code: constr(min_length=4, max_length=4)
     type: CodeTypeEnum
     verified: bool = Field(default=False)

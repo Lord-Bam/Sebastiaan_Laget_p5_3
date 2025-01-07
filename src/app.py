@@ -1,6 +1,7 @@
 from app_factory import create_app
 from model import Model
 import configparser
+from flask import session
 
 app = create_app()
 

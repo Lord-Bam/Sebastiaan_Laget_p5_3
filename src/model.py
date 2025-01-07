@@ -29,20 +29,21 @@ class Model:
         if not user_dto:
             return "user_not_found"
 
-        sms_code: model_dto.RegistrationCodeDto = self.get_registration_sms_code_from_user(user_dto)
-        if sms_code:
-            if not sms_code.verified:
-                return "verify_sms"
-
-        mail_code: model_dto.RegistrationCodeDto = self.get_registration_mail_code_from_user(user_dto)
-        if mail_code:
-            if not mail_code.verified:
-                return "verify_mail"
-
         if check_password_hash(user_dto.password, login_dto.password):
+            sms_code: model_dto.RegistrationCodeDto = self.get_registration_sms_code_from_user(user_dto)
+            if sms_code:
+                if not sms_code.verified:
+                    return "verify_sms"
+
+            mail_code: model_dto.RegistrationCodeDto = self.get_registration_mail_code_from_user(user_dto)
+            if mail_code:
+                if not mail_code.verified:
+                    return "verify_mail"
             return "True"
 
-        return "Username of password incorrect."
+
+
+        return "Username or password incorrect."
 
     def verify_registration_code(self, code: model_dto.RegistrationCodeDto):
         registration_codes: list[model_dto.RegistrationCodeDto] = self.db.get_registation_code(code.user.username)
@@ -118,36 +119,3 @@ class Model:
     
     def get_users(self) -> list[model_dto.UserDto]:
         return self.db.get_users()
-
-#     def verify_mail(self, register_code: int, username: str):
-#         # get user verification code from database
-#         if register_code == 666:
-#             return True
-#         else:
-#             return False
-#         pass
-
-#     def verify_mobile_nr(self):
-#         pass
-
-#     def logout(self):
-#         pass
-
-#     def reset_password(self):
-#         pass
-
-# class userDto(BaseModel):
-#     username: constr(min_length=1)
-#     password: constr(min_length=1)
-#     email: EmailStr
-#     mobile_nr: str
-#     role: str
-
-# class CodeTypeEnum(str, Enum):
-#     mail = "mail"
-#     sms = "sms"
-
-# class RegistrationCodeDto(BaseModel):
-#     username: constr(min_length=1)
-#     code: conint(ge=1000, le=9999)
-#     type: CodeTypeEnum
