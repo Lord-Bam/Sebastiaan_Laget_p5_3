@@ -32,6 +32,19 @@ class TestModel:
         result = model.login(login)
         assert result == expected
 
+    def test_reset_password(self, setup_teardown, get_config, create_users):
+        model: Model = Model(get_config)
+        admin = create_users[0]
+        login_dto = LoginDto(username="admin", password="admin_password")
+        assert model.login(login_dto) == "verify_sms"
+        admin.password = "123"
+        admin.mobile_nr = "123"
+        model.update_user(admin)
+        login_dto = LoginDto(username="admin", password="123")
+        assert model.login(login_dto) == "verify_sms"
+        login_dto = LoginDto(username="admin", password="123")
+        assert model.login(login_dto) != "admin_password"
+
 
 
     def test_user_registration_roles(self,setup_teardown, get_config, create_users):

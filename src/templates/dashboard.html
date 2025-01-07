@@ -9,6 +9,13 @@
 <div class="container mt-5">
     <h1>Welcome, {{ username }}!</h1>
     <p>This is your dashboard.</p>
+    <p>This is your role: {{ session.user.role }}</p>
+
+    <a href="{{ url_for('login.logout') }}" id="logout-link" class="text-danger">Logout</a>
+    {% if session.user.role == "admin" %}
+        <br>
+        <a href="{{ url_for('login.admin') }}" id="admin-link" class="text-danger">Admin Page</a>
+    {% endif %}
 </div>
 </body>
 </html>

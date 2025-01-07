@@ -16,7 +16,6 @@ class Persistance():
         if not db_role:
             db_role = persistance_model.Role(user.role.value)
 
-
         if not db_user:
             db_user: persistance_model.User = persistance_model.User()
             db_user.username = user.username
@@ -26,7 +25,6 @@ class Persistance():
             db_user.role = db_role
             self.session.add(db_user)
         else:
-            db_user: persistance_model.User = persistance_model.User()
             db_user.username = user.username
             db_user.password = user.password
             db_user.email = user.email

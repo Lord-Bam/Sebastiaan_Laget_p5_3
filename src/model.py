@@ -119,3 +119,11 @@ class Model:
     
     def get_users(self) -> list[model_dto.UserDto]:
         return self.db.get_users()
+
+    def update_user(self, user: model_dto.UserDto) -> bool:
+        try:
+            user.password = generate_password_hash(user.password)
+            self.db.add_update_user(user)
+        except Exception as ex:
+            print(ex)
+            return False

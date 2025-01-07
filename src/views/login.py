@@ -15,7 +15,7 @@ def login():
 
 
 
-        if login_result == "True" or "verify_sms" or "verify_mail":
+        if login_result == "True" or login_result == "verify_sms" or login_result == "verify_mail":
             flash("Login successful!", "success")
             #create session
             session["username"] = username
@@ -33,6 +33,19 @@ def login():
 def dashboard():
     username = session.get("username")
     return render_template("dashboard.html", username=username)
+
+@login_bp.route("/logout")
+def logout():
+    session.clear()
+    return render_template("login.html")
+
+@login_bp.route("/admin")
+def admin():
+    if session.get("user")["role"] == "admin":
+        return render_template("admin.html")
+    else:
+        session.clear()
+        return render_template("login.html")
 
 @login_bp.route("/verify_code", methods=["GET", "POST"])
 def verify_code():
