@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Welcome, {{ username }}!</h1>
+    <p>This is your admin page.</p>
+
+    <!-- Logout Link -->
+    <a href="{{ url_for('login.logout') }}" id="logout-link" class="text-danger">Logout</a></div>
+</body>
+</html>
