@@ -10,6 +10,10 @@ from model_dto import RegistrationCodeDto
 from model_dto import RoleEnum
 from model_dto import CodeTypeEnum
 from werkzeug.security import generate_password_hash, check_password_hash
+from jinja2 import Environment, FileSystemLoader
+import jwt
+import datetime
+
 
 
 class Model:
@@ -20,6 +24,12 @@ class Model:
         self.db: Persistance = Persistance(config)
         self.mail: Mail = Mail(config)
         self.sms_client: SMSService = SMSService(config)
+        # Set up Jinja2 environment
+        env = Environment(loader=FileSystemLoader(config['MAIL TEMPLATES']['directory']))
+        # Load the template
+        self.reset_template = env.get_template(config['MAIL TEMPLATES']['reset_mail'])
+        self.webserver_address = config['WEBSERVER']['address']
+        self.jwt_key = config['JWT']['key']
 
     def login(self, login_dto: LoginDto) -> str:
         #todo
@@ -40,9 +50,6 @@ class Model:
                 if not mail_code.verified:
                     return "verify_mail"
             return "True"
-
-
-
         return "Username or password incorrect."
 
     def verify_registration_code(self, code: model_dto.RegistrationCodeDto):
@@ -116,7 +123,7 @@ class Model:
 
     def get_user(self, username: str):
         return self.db.get_user(username)
-    
+
     def get_users(self) -> list[model_dto.UserDto]:
         return self.db.get_users()
 
@@ -127,3 +134,27 @@ class Model:
         except Exception as ex:
             print(ex)
             return False
+
+    def send_reset_mail(self, mail: str):
+        #check if user exists
+        user = self.db.get_user_via_mail(mail)
+        #send mail, include jwt token so we can afterwards verify if the link is real.
+        if user:
+            #generate reset link:
+            expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=100)
+            payload={
+                "padding":"padding",
+                "email":mail
+            }
+            jwt_token = jwt.encode(payload, "secret_key", algorithm='HS256')
+            print(jwt_token)
+            reset_link = self.webserver_address + "/reset_password?token=" + jwt_token
+
+            #using jinja2, create the html mail and send it.
+            body = self.reset_template.render(reset_link=reset_link)
+            print(body)
+            subject: str = "reset mail"
+            email: str = mail
+            result = self.mail.send_email(subject, body, email, "html")
+            print(result)
+        pass

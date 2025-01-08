@@ -12,7 +12,7 @@ def create_app():
     app.register_blueprint(login_bp)
     app.register_blueprint(register_bp)
 
-    EXCLUDED_ENDPOINTS = {'login.login', "login.verify_code", "register.register"}
+    EXCLUDED_ENDPOINTS = {'login.login', "login.verify_code", "register.register", "login.reset", "login.verify_reset", "login.reset_mail_sent", "login.reset_password"}
 
     @app.before_request
     def before_request():

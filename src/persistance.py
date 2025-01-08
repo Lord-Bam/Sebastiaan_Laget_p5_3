@@ -51,6 +51,17 @@ class Persistance():
                                      role = model_dto.RoleEnum(db_user.role.role))
             return user
         return None
+
+    def get_user_via_mail(self, mail: str):
+        db_user = self.session.query(persistance_model.User).filter_by(email=mail).first()
+        if db_user:
+            user = model_dto.UserDto(username = db_user.username,
+                                     password = db_user.password,
+                                     email = db_user.email,
+                                     mobile_nr = db_user.mobile_nr,
+                                     role = model_dto.RoleEnum(db_user.role.role))
+            return user
+        return None
     
     def get_users(self):
         db_users = self.session.query(persistance_model.User).all()

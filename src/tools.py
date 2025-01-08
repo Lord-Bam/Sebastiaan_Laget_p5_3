@@ -37,8 +37,8 @@ class Mail:
         self.port: str = config["MAIL"]["port"]
         self.imap: str = config["MAIL"]["imap"]
 
-    def send_email(self, subject: str, body: str, recipient: str):
-        msg = MIMEText(body)
+    def send_email(self, subject: str, body: str, recipient: str, mimetype:str = "plain"):
+        msg = MIMEText(body, mimetype)
         msg["Subject"] = subject
         msg["From"] = self.sender
         msg["To"] = ", ".join([recipient])
