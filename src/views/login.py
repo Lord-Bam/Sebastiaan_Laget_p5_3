@@ -70,6 +70,12 @@ def reset_password():
         password2 = request.form.get("password2")
         #get user
         user = current_app.model.get_user(username)
+
+        if user.email != session.get("email"):
+            print("invalid mail")
+            flash(f"something went wrong", "danger")
+            return render_template("login.html")
+
         if user:
             if password1 != password2:
                 print("passwords do not match")
@@ -89,17 +95,20 @@ def reset_password():
         abort(400, "Missing token")
     try:
         decoded_token = jwt.decode(token, "secret_key", algorithms=['HS256'])
+        session["token"] = token
+        session["email"] = decoded_token.get("email")
+        return render_template("reset_password.html")
         print(decoded_token)
     except jwt.ExpiredSignatureError:
         flash("Token has expired")
         print("Token has expired")
-        return render_template("reset_password.html")
+        return render_template("login.html")
     except jwt.InvalidTokenError:
         print("Invalid token")
         flash("Invalid token")
-        return render_template("reset_password.html")
+        return render_template("login.html")
 
-    return render_template("reset_password.html")
+    return render_template("login.html")
 
 
 

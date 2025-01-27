@@ -98,13 +98,13 @@ class Model:
             # send mail
             code = str(random.randint(1000, 9999))
             self.db.add_update_registation_code(RegistrationCodeDto(code=code, type="mail", user=user, verified=False))
-            #self.send_register_mail(user, code)
+            self.send_register_mail(user, code)
             
             
             # send sms
             code = str(random.randint(1000, 9999))
             self.db.add_update_registation_code(RegistrationCodeDto(code=code, type="sms", user=user, verified=False))
-            #self.send_register_sms(user.mobile_nr, f"this is your personal registration code: {code}")
+            self.send_register_sms(user.mobile_nr, f"this is your personal registration code: {code}")
             return True
         except Exception as ex:
             print(ex)
