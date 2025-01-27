@@ -9,13 +9,17 @@
 <body>
 <div class="container mt-5">
     <h2 class="text-center">Reset Passwrd</h2>
-    <form method="POST" action="/reset_mail_sent">
-        <p>Please fill in your password.</p>
+    <form method="POST" action="/reset">
+        {{ form.hidden_tag() }}
+        <p>Please fill in your email.</p>
         <div class="mb-3">
-            <label for="mail" class="form-label">Mail</label>
-            <input type="text" name="mail" id="mail" class="form-control" required>
+            {{ form.mail.label(class_="form-label") }}
+            {{ form.mail(class_="form-control") }}
+            {% for error in form.mail.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">reset</button>
+        <button type="submit" class="btn btn-primary">Reset</button>
     </form>
 
     <br>

@@ -3,15 +3,17 @@ import time
 import model_dto
 import tools
 import jwt
+from forms import LoginForm, VerifyCodeForm, ResetPasswordForm
 
 login_bp = Blueprint("login", __name__)  # Create a Blueprint for login-related routes
 
 @login_bp.route("/", methods=["GET", "POST"])
 def login():
+    form = LoginForm()
 
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
         login_dto = model_dto.LoginDto(username=username, password=password)
         login_result = current_app.model.login(login_dto)
 
@@ -27,7 +29,7 @@ def login():
         else:
             flash(f"{login_result}", "danger")
 
-    return render_template("login.html")
+    return render_template("login.html", form=form)
 
 @login_bp.route("/dashboard")
 def dashboard():
@@ -37,7 +39,7 @@ def dashboard():
 @login_bp.route("/logout")
 def logout():
     session.clear()
-    return render_template("login.html")
+    return redirect('/')
 
 @login_bp.route("/admin")
 def admin():
@@ -45,21 +47,19 @@ def admin():
         return render_template("admin.html")
     else:
         session.clear()
-        return render_template("login.html")
+        return redirect('/')
 
 @login_bp.route("/reset", methods=["GET", "POST"])
 def reset():
-    return render_template("reset.html")
-
-@login_bp.route("/reset_mail_sent", methods=["GET", "POST"])
-def reset_mail_sent():
-    if request.method == "POST":
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
         #check if user exists
-        print("fetching user via mail:", request.form.get("mail"))
-        current_app.model.send_reset_mail(request.form.get("mail"))
-        return render_template("reset_mail_sent.html")
+        print("fetching user via mail:", form.mail.data)
+        current_app.model.send_reset_mail(form.mail.data)
+        flash("Reset mail sent!", "success")
+        return redirect('/')
         pass
-    return render_template("reset_mail_sent.html")
+    return render_template("reset.html", form = form)
 
 @login_bp.route("/reset_password", methods=["GET", "POST"])
 def reset_password():
@@ -74,7 +74,7 @@ def reset_password():
         if user.email != session.get("email"):
             print("invalid mail")
             flash(f"something went wrong", "danger")
-            return render_template("login.html")
+            return redirect('/')
 
         if user:
             if password1 != password2:
@@ -84,12 +84,11 @@ def reset_password():
             #save new password
             user.password = password1
             current_app.model.update_user(user)
-            return render_template("login.html")
+            return redirect('/')
         else:
             flash(f"something went wrong", "danger")
 
     #verify token
-    # verify token... get mail
     token = request.args.get("token")
     if not token:
         abort(400, "Missing token")
@@ -102,27 +101,25 @@ def reset_password():
     except jwt.ExpiredSignatureError:
         flash("Token has expired")
         print("Token has expired")
-        return render_template("login.html")
+        return redirect('/')
     except jwt.InvalidTokenError:
         print("Invalid token")
         flash("Invalid token")
-        return render_template("login.html")
+        return redirect('/')
 
-    return render_template("login.html")
-
-
-
-
-
-
+    return redirect('/')
 
 @login_bp.route("/verify_code", methods=["GET", "POST"])
 def verify_code():
+    form = VerifyCodeForm()
     print(session.get("username"))
     verify_type = session.get("verify_type")
-    if request.method == "POST":
+    label_text = f"{verify_type.capitalize()} code"  # 'sms code' or 'mail code'
+    form.code.label.text = label_text
+
+    if request.method == "POST" and form.validate_on_submit():
         user = session.get("user")
-        code_under_under_test = model_dto.RegistrationCodeDto(code=request.form.get("code"),
+        code_under_under_test = model_dto.RegistrationCodeDto(code=form.code.data,
                                                               type=model_dto.CodeTypeEnum(verify_type),
                                                               user=model_dto.UserDto.model_validate(session.get("user"))
                                                               )
@@ -137,5 +134,5 @@ def verify_code():
         else:
             flash("code incorrect", "danger")
 
-    return render_template("verify_code.html", session = session)
+    return render_template("verify_code.html", session = session, form = form)
 

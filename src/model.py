@@ -84,17 +84,21 @@ class Model:
         return None
 
 
-
     def register(self, user: model_dto.UserDto) -> bool:
         try:
             # save user
+            #check if user already exists and exit
+
+            if self.db.get_user(user.username):
+                return False
+
             user.password = generate_password_hash(user.password)
             if len(self.get_users()) == 0:
                 user.role=RoleEnum("admin")
             else:
                 user.role=RoleEnum("user")
             self.db.add_update_user(user)
-            
+
             # send mail
             code = str(random.randint(1000, 9999))
             self.db.add_update_registation_code(RegistrationCodeDto(code=code, type="mail", user=user, verified=False))

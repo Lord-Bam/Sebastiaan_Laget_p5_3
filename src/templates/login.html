@@ -10,15 +10,24 @@
 <div class="container mt-5">
     <h2 class="text-center">Login</h2>
     <form method="POST" action="/">
+        {{ form.hidden_tag() }}
         <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" id="username" class="form-control" required>
+            {{ form.username.label(class_="form-label") }}
+            {{ form.username(class_="form-control") }}
+            {% for error in form.username.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
         </div>
         <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
+            {{ form.password.label(class_="form-label") }}
+            {{ form.password(class_="form-control") }}
+            {% for error in form.password.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <div class="d-grid">
+            {{ form.submit(class_="btn btn-primary") }}
+        </div>
     </form>
 
     <br>

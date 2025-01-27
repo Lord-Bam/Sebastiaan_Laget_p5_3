@@ -10,13 +10,19 @@
 <div class="container mt-5">
     <h2 class="text-center">Verify SMS</h2>
     <form method="POST" action="/verify_code">
+        {{ form.hidden_tag() }}
         <div class="mb-3">
-            <p>welcome {{ session["username"] }}<br>
-            you still need to verify your {{ session["verify_type"] }} code</p>
-            <label for="code" class="form-label">{{ session["verify_type"] }} code</label>
-            <input type="text" name="code" id="code" class="form-control" required>
+            <p>Welcome {{ session["username"] }}<br>
+            You still need to verify your {{ session["verify_type"] }} code</p>
+            {{ form.code.label(class_="form-label") }}
+            {{ form.code(class_="form-control") }}
+            {% for error in form.code.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">Verify code</button>
+        <div class="d-grid">
+            {{ form.submit() }}
+        </div>
     </form>
 
     <br>

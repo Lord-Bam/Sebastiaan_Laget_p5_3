@@ -7,21 +7,45 @@
 </head>
 <body>
     <h1>Register</h1>
-    <form method="POST" action="{{ url_for('register.register') }}">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
+        <form method="POST" action="{{ url_for('register.register') }}">
+            {{ form.hidden_tag() }}
 
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
+            <div class="mb-3">
+                {{ form.username.label(class_="form-label") }}
+                {{ form.username(class_="form-control") }}
+                {% for error in form.username.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
 
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
+            <div class="mb-3">
+                {{ form.password.label(class_="form-label") }}
+                {{ form.password(class_="form-control") }}
+                {% for error in form.password.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
 
-        <label for="mobile_nr">Mobile Number:</label><br>
-        <input type="text" id="mobile_nr" name="mobile_nr" required><br><br>
+            <div class="mb-3">
+                {{ form.email.label(class_="form-label") }}
+                {{ form.email(class_="form-control") }}
+                {% for error in form.email.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
 
-        <button type="submit">Register</button>
-    </form>
+            <div class="mb-3">
+                {{ form.mobile_nr.label(class_="form-label") }}
+                {{ form.mobile_nr(class_="form-control") }}
+                {% for error in form.mobile_nr.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="d-grid">
+                {{ form.submit() }}
+            </div>
+        </form>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
